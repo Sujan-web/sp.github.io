@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - IT Support Help Calls</title>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #2e3b4e;
+            padding: 20px;
+            height: 100vh;
+            color: #ffffff;
+            overflow-y: auto;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .script-container {
+            display: none;
+            margin-top: 20px;
+        }
+        .script-section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        .conversation-box {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+        .customer-box, .agent-box {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .customer-box {
+            background-color: #e8f4fa;
+            border-left: 5px solid #2196F3;
+        }
+        .agent-box {
+            background-color: #e7f9e8;
+            border-left: 5px solid #4CAF50;
+        }
+        .response-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .issue-link {
+            color: #fff;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .button.delete {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Issues</h2>
+        <div id="issueList">
+            <!-- Issues will be dynamically loaded here -->
+        </div>
+        <button class="button" id="addIssue">Add Issue</button>
+    </div>
+
+    <div class="content">
+        <h1>IT Support Help Calls Dashboard</h1>
+        <p>Select an issue from the sidebar to view the script.</p>
+        <div id="scriptContent" class="script-container">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        // Ensure user is logged in
+        function checkLogin() {
+            if (!sessionStorage.getItem('loggedIn')) {
+                window.location.href = 'login.html';
+            }
+        }
+        checkLogin();
+
+        // Load issues from local storage
+        function loadIssues() {
+            const issueList = document.getElementById('issueList');
+            issueList.innerHTML = ''; // Clear existing issues
+            const issues = JSON.parse(localStorage.getItem('issues')) || [];
+            issues.forEach(issue => {
+                const issueElement = document.createElement('a');
+                issueElement.href = '#';
+                issueElement.classList.add('issue-link');
+                issueElement.dataset.issue = issue.id;
+                issueElement.textContent = issue.title;
+                issueElement.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loadIssueContent(issue.id);
+                });
+                issueList.appendChild(issueElement);
+            });
+        }
+
+        // Load issue content
+        function loadIssueContent(issueId) {
+            const scriptContent = document.getElementById('scriptContent');
+            scriptContent.innerHTML = ''; // Clear existing content
+            const issues = JSON.parse(localStorage.getItem('issues')) || [];
+            const issue = issues.find(i => i.id === issueId);
+            if (issue) {
+                scriptContent.style.display = 'block';
+                scriptContent.innerHTML = `
+                    <div class="section-title">${issue.title}</div>
+                    <div class="conversation-box">
+                        <div class="agent-box">
+                            <div class="response-label">Your Part:</div>
+                            <p>${issue.followUpQuestions}</p>
+                        </div>
+                        <div class="customer-box">
+                            <div class="response-label">Customer's Part:</div>
+                            <p>${issue.potentialSolutions}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Add new issue
+        document.getElementById('addIssue').addEventListener('click', function() {
+            const title = prompt('Enter issue title:');
+            if (title) {
+                const issues = JSON.parse(localStorage.getItem('issues')) || [];
+                const newIssue = {
+                    id: Date.now().toString(),
+                    title: title,
+                    followUpQuestions: 'Add follow-up questions here...',
+                    potentialSolutions: 'Add potential solutions here...'
+                };
+                issues.push(newIssue);
+                localStorage.setItem('issues', JSON.stringify(issues));
+                loadIssues();
+            }
+        });
+
+        // Load initial data
+        loadIssues();
+    </script>
+</body>
+</html>
